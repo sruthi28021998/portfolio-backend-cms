@@ -17,7 +17,18 @@ if (!fs.existsSync(uploadsDir)) {
 }
 
 const app = express();
-app.use(cors({ origin: process.env.CLIENT_URL || '*' }));
+
+const allowedOrigins = (process.env.CLIENT_URL || '').split(',').map(o => o.trim());
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  }
+}));
+
 app.use(express.json());
 app.use('/auth', authRoutes);
 app.use('/api', contentRoutes);
